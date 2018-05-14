@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Teste</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<body>
+
+</body>
+</html>
+
+<script type="text/javascript">
+	
+
+// Array de teste.
+// '[[ ["Armando", "P"], ["Dave", "S"] ],[ ["Richard", "R"],  ["Michael", "S"] ], [ ["Allen", "S"], ["Omer", "P"] ],[ ["David E.", "R"], ["Richard X.", "P"] ],[ ["Bruno W.", "R"], ["Mateus A.", "R"] ],[ ["Mikaella R.", "R"], ["Mirella R.", "P"] ],[ ["Meire", "P"], ["Paulo", "P"] ],[ ["Pedro", "S"], ["João", "R"] ]] '
+
+
+$(document).ready(function(){
+	let list = prompt("Entre com os jogadores.");
+	//Chama o método que processa o torneio
+	rps_tournament_winner(list);
+});
+
+//Método que recebe 2 jogadores processa a jogada.
+function rps_game_winner(list)
+{
+	//Transfora a string em um JSON para trabalhar mais facilmente
+	var temp = JSON.parse(list);
+	var players = [];	
+
+	//for para colocar os dois jogadores dentro de um array.
+	for(let i = 0; i < temp.length; i ++)
+	{
+		players.push(temp[i]);
+	}
+
+	//Verifica se existe um array dentro do outro se não existir vai para o else if.
+	if(players.length == 1)
+	{
+		//Se os jogadores estiverem dentro do array processa a jogada se não da o erro.
+		if(players[0].length == 2 && Array.isArray(players[0][0]))
+		{
+			return winner(players[0]);
+		}
+		else
+		{
+			console.log("WrongNumberOfPlayersError");
+			return;
+		}
+	}
+	//Se existir mais de 2 jogadores por rodada da o erro se não processa a jogada.
+	else if(players.length > 2)
+	{
+		console.log("WrongNumberOfPlayersError");
+		return;
+	}
+	else
+	{
+		return winner(players);
+	}
+}
+
+//Método que processa o torneio.
+function rps_tournament_winner(listTournament)
+{
+	console.log("===========================Primeira Rodada===========================");
+	var temp = JSON.parse(listTournament);
+	var answer = "";
+	var champ = [];
+	var nextRound = [];
+	var end = [];
+	playEnd = [];
+
+	//Processa a primeira rodada com todos os jogadores.
+	champ = champsProcess(temp);
+
+	//Verifica se ainda existe jogos para serem feitos.
+	if(champ.length >= 1)
+	{
+		//Processa a próxima rodada.
+		nextRound = champsProcess(champ);
+
+		//Verifica se ainda existe jogo para ser processado
+		while(nextRound.length > 1)
+		{
+			nextRound = champsProcess(nextRound);
+		}		
+
+		//Verifica se é o ultimo jogo.
+		if (nextRound.length == 1)
+		{
+			end = rps_game_winner(JSON.stringify(nextRound));
+		}
+
+		//Se entrar uma jogada a mais que não tenha adiversario, ele cai direto na final.
+		if(playEnd.length > 0)
+		{
+			//Verifica se teve jogada final, se não existiu ele torna a ultima jogada como vencedora.
+			if(end.length == 0)
+				answer = playEnd[0];
+			//Se existir o jogo final e estiver sobrado um vencedor na rodada passada, ele processa a final.
+			else
+			{
+				playEnd[0].push(end);
+				answer = rps_game_winner(JSON.stringify(playEnd[0]));
+			}
+		}	
+		else
+		{
+			answer = end;
+		}
+	}
+
+	var chp = JSON.stringify(answer);
+	console.log(".........Vencedor.........");
+	console.log(chp);
+	alert("Vencedor : " + chp);
+}
+
+//Método que faz a classificação dos jogadores e processa quem vai jogar com quem.
+function champsProcess(champ)
+{	
+	var players = [];
+	var play = [];
+
+	//For para processar os campeões de cada rodada,e guarda quem em uma variavel irá enfrentar na proxima rodada.
+	for(let i = 0; i < champ.length; i++ ) 
+	{
+		play.push(rps_game_winner(JSON.stringify(champ[i])));
+
+		if(play.length == 2)
+		{
+			players.push(play); 
+			play = [];
+		}
+	}
+
+	//Verifica se ficou um campeão de fora do proximo jogo por falta de jogadores.
+	if(play.length > 0)
+	{
+		//Se for o primeiro campeão que ficou sozinho ele guarda na variavel.
+		if(playEnd.length == 0)
+			playEnd.push(play);
+		//Se já estiver um campeão da proxima rodada ele guarda na posição 0 do array.
+		else
+			playEnd[0].push(play[0]);
+
+		//Se já existir 2 campeões que sobraram das rodadas passadas ele coloca um para jogar contra o outro.
+		if(playEnd[0].length == 2)
+		{
+			players.push(playEnd[0]);
+			playEnd = [];
+		}
+	}
+
+	console.log("===========================Proxima Rodada===========================");
+	return players;
+}
+
+//Método para processar cada jogada.
+function winner(players)
+{
+	var erro = 0;
+	var answer = "";
+	var champRound;
+
+	//For para rodar cada jogador.
+	for(let i = 0; i < players.length; i ++)
+	{
+		//Verifica se os jogadores não jogaram outras letras além das permitidas.
+		if(players[i][1].toUpperCase() != "P" && players[i][1].toUpperCase() != "S" && players[i][1].toUpperCase() != "R")
+		{
+			erro = 1;
+			answer = "NoSuchStrategyError";
+			break;
+		}	
+	}
+
+	//Se não existiu erro nenhum ai começa o processamento.
+	if(erro != 1)
+	{
+		var player1 = players[0];
+		var player2 = players[1];
+
+		//Verifica se os dois jogadores jogaram iguais, se sim o primeiro ganha a jogada se não entra no else e processa quem ganhou.
+		if(player1[1] == player2[1])
+		{
+			answer = "O jogador " + player1[0] + " ganhou do " + player2[0] + " com a jogada " + player1[1].toUpperCase() + " > " + player2[1].toUpperCase() + " pois foi o primeiro a jogar!";
+			champRound = player1;
+		}
+		else
+		{
+			//Verifica qual foi a jogada do primeiro jogador e verifica se ele ganhou ou não a rodada.
+			switch(player1[1])
+			{
+				case "R":
+					if(player2[1] == "S")
+					{
+						answer = "O jogador " + player1[0] + " ganhou do " + player2[0] + " com a jogada " + player1[1].toUpperCase() + " > " + player2[1].toUpperCase();
+						champRound = player1;
+					}
+					else
+					{
+						answer = "O jogador " + player2[0] + " ganhou do " + player1[0] + " com a jogada " + player2[1].toUpperCase() + " > " + player1[1].toUpperCase();
+						champRound = player2;
+					}
+					break;
+				case "S":
+					if(player2[1] == "P")
+					{
+						answer = "O jogador " + player1[0] + " ganhou do " + player2[0] + " com a jogada " + player1[1].toUpperCase() + " > " + player2[1].toUpperCase();
+						champRound = player1;
+					}
+					else
+					{
+						answer = "O jogador " + player2[0] + " ganhou do " + player1[0] + " com a jogada " + player2[1].toUpperCase() + " > " + player1[1].toUpperCase();
+						champRound = player2;
+					}
+					break;
+				case "P":
+					if(player2[1] == "R")
+					{
+						answer = "O jogador " + player1[0] + " ganhou do " + player2[0] + " com a jogada " + player1[1].toUpperCase() + " > " + player2[1].toUpperCase();
+						champRound = player1;
+					}
+					else
+					{
+						answer = "O jogador " + player2[0] + " ganhou do " + player1[0] + " com a jogada " + player2[1].toUpperCase() + " > " + player1[1].toUpperCase();
+						champRound = player2;
+					}
+					break;
+			}
+		}
+	}
+
+	console.log(answer);
+	return champRound;
+}
+
+</script>
